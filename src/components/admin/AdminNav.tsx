@@ -6,9 +6,10 @@ import { usePathname, useRouter } from "next/navigation";
 const navItems = [
   { href: "/admin/dashboard", label: "대시보드" },
   { href: "/admin/inquiries", label: "문의 수신함" },
-  { href: "/admin/classes", label: "클래스 링크" },
+  { href: "/admin/classes", label: "클래스 관리" },
   { href: "/admin/banner", label: "공지 배너" },
   { href: "/admin/testimonials", label: "후기 관리" },
+  { href: "/admin/settings", label: "설정" },
 ];
 
 export default function AdminNav() {
