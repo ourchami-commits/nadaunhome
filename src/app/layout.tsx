@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Serif_KR, Noto_Sans_KR } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const notoSerifKR = Noto_Serif_KR({
@@ -39,6 +40,7 @@ export default function RootLayout({
     <html lang="ko">
       <body className={`${notoSerifKR.variable} ${notoSansKR.variable}`}>
         {children}
+        <Analytics />
       </body>
     </html>
   );

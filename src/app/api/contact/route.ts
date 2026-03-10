@@ -1,9 +1,22 @@
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/firebase";
+import { FieldValue } from "firebase-admin/firestore";
 
 export async function POST(req: NextRequest) {
   try {
     const { name, email, phone, type, message } = await req.json();
+
+    // Save to Firestore
+    await db.collection("inquiries").add({
+      name,
+      email,
+      phone,
+      type,
+      message,
+      read: false,
+      createdAt: FieldValue.serverTimestamp(),
+    });
 
     const resend = new Resend(process.env.RESEND_API_KEY);
 

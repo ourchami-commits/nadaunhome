@@ -10,10 +10,12 @@ import Instructor from "@/components/sections/Instructor";
 import ContactForm from "@/components/sections/ContactForm";
 import FAQ from "@/components/sections/FAQ";
 import FinalCTA from "@/components/sections/FinalCTA";
+import AnnouncementBanner from "@/components/admin/AnnouncementBanner";
 
 export default function Home() {
   return (
     <>
+      <AnnouncementBanner />
       <Navbar />
       <main>
         <Hero />

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vercel --prod)",
+      "Bash(vercel env add RESEND_API_KEY production --value \"re_h3KPYPHL_HXm5cV3JoeGc4uS4h3s9Dnkv\" --yes)"
+    ]
+  }
+}
