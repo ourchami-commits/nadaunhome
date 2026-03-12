@@ -28,11 +28,11 @@ export const metadata: Metadata = {
     description: "누구나 자신의 이야기를 꺼내어 나다운 작품으로 완성할 수 있도록",
     type: "website",
     locale: "ko_KR",
-    images: [{ url: "/images/og-image.png", width: 1200, height: 630 }],
+    images: [{ url: "https://nadaunhome.vercel.app/images/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/images/og-image.png"],
+    images: ["https://nadaunhome.vercel.app/images/og-image.png"],
   },
 };
 
