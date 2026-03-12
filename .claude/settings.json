@@ -5,6 +5,9 @@
       "Bash(vercel env add RESEND_API_KEY production --value \"re_h3KPYPHL_HXm5cV3JoeGc4uS4h3s9Dnkv\" --yes)",
       "Bash(git add public/images/instructor-profile.png)",
       "Bash(npx vercel --prod)"
+    ],
+    "additionalDirectories": [
+      "c:\\claude\\nadaunhome"
     ]
   }
 }
