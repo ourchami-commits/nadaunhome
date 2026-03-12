@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 const navLinks = [
   { label: "클래스 소개", href: "#classes" },
@@ -28,12 +29,14 @@ export default function Navbar() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <a
-            href="#"
-            className="text-dark font-heading font-semibold text-lg leading-tight"
-          >
-            나다운<br className="hidden sm:block" />
-            <span className="text-primary text-sm font-body font-medium sm:hidden"> AI창작 워크룸</span>
+          <a href="#" className="flex items-center">
+            <Image
+              src="/images/logo.png"
+              alt="나다운 AI활용 창작 워크룸"
+              width={120}
+              height={40}
+              className="h-9 w-auto object-contain"
+            />
           </a>
 
           {/* Desktop nav */}
