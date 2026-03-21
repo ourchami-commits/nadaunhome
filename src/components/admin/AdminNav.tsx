@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase-client";
 
 const navItems = [
   { href: "/admin/dashboard", label: "대시보드" },
@@ -9,6 +10,8 @@ const navItems = [
   { href: "/admin/classes", label: "클래스 관리" },
   { href: "/admin/banner", label: "공지 배너" },
   { href: "/admin/testimonials", label: "후기 관리" },
+  { href: "/admin/portfolio", label: "포트폴리오 관리" },
+  { href: "/admin/faq", label: "FAQ 관리" },
   { href: "/admin/settings", label: "설정" },
 ];
 
@@ -18,6 +21,7 @@ export default function AdminNav() {
 
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
+    await auth.signOut();
     router.push("/admin/login");
   };
 

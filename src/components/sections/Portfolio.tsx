@@ -1,64 +1,183 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
-const portfolioItems = [
-  { label: "그림책", emoji: "📚", desc: "수강생이 직접 기획·완성한 그림책" },
-  { label: "시 그림책", emoji: "🌸", desc: "나의 시로 만든 감성 그림책" },
-  { label: "AI 이미지", emoji: "🎨", desc: "Ideogram으로 만든 창작 이미지" },
-  { label: "영상 콘텐츠", emoji: "🎬", desc: "AI로 제작한 유튜브 영상" },
-  { label: "전자책", emoji: "📱", desc: "디지털로 배포 가능한 전자책" },
-  { label: "수강생 결과물", emoji: "✨", desc: "실제 수강생이 완성한 작품들" },
-];
+import type { CSSProperties } from "react";
+
+type Category = "전체" | "그림책" | "카드뉴스" | "영상" | "ebook";
+
+interface PortfolioItem {
+  id: string;
+  category: Category;
+  title: string;
+  desc: string;
+  imageUrl?: string;
+  visible: boolean;
+  sortOrder: number;
+}
+
+const categoryStyle: Record<string, CSSProperties> = {
+  그림책:  { backgroundColor: "#C9E3B2", color: "#2D3540" },
+  카드뉴스: { backgroundColor: "#F4B59F", color: "#2D3540" },
+  영상:   { backgroundColor: "#B9DAF2", color: "#2D3540" },
+  ebook:  { backgroundColor: "#F6E59A", color: "#2D3540" },
+};
+
+const placeholderBg: Record<string, string> = {
+  그림책:  "linear-gradient(135deg, #e8f5d8 0%, #c9e3b2 100%)",
+  카드뉴스: "linear-gradient(135deg, #fde8df 0%, #f4b59f 100%)",
+  영상:   "linear-gradient(135deg, #daeef9 0%, #b9daf2 100%)",
+  ebook:  "linear-gradient(135deg, #fdf6d8 0%, #f6e59a 100%)",
+};
+
+const categories: Category[] = ["전체", "그림책", "카드뉴스", "영상", "ebook"];
 
 export default function Portfolio() {
+  const [active, setActive] = useState<Category>("전체");
+  const [items, setItems] = useState<PortfolioItem[]>([]);
+
+  useEffect(() => {
+    fetch("/api/admin/portfolio")
+      .then((r) => r.json())
+      .then((data: PortfolioItem[]) =>
+        setItems(data.filter((i) => i.visible !== false))
+      )
+      .catch(() => {});
+  }, []);
+
+  const filtered = active === "전체" ? items : items.filter((i) => i.category === active);
+
   return (
-    <section className="bg-bg py-20 md:py-28" id="portfolio">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+    <section className="py-20 md:py-28" style={{ backgroundColor: "#EDE7DC" }} id="portfolio">
+      <div className="section-inner">
+
+        {/* 헤더 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-14"
+          className="section-header-lg"
         >
-          <p className="text-secondary font-semibold text-sm mb-3 tracking-wide">
+          <span className="label-tag" style={{ color: "#5E7A52" }}>
             실제로 이런 것들을 만들어요
-          </p>
-          <h2 className="font-heading text-dark text-2xl md:text-4xl font-bold mb-4">
-            대표 결과물 & 포트폴리오
-          </h2>
-          <p className="text-subtext text-base md:text-lg">
-            AI를 활용해 수강생들이 직접 완성한 창작물입니다.
-          </p>
+          </span>
+          <h2 className="section-title mb-3">우리 클래스에서는<br className="sm:hidden" /> 이런 결과물을 만들 수 있어요</h2>
+          <p className="text-subtext text-base md:text-lg">AI로 만든 나다운 이야기책, 영상 등</p>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {portfolioItems.map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="bg-cream rounded-2xl aspect-square flex flex-col items-center justify-center p-6 border border-border hover:shadow-md transition-shadow"
+        {/* 카테고리 필터 */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="flex flex-wrap justify-center gap-2 mb-10"
+        >
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActive(cat)}
+              className="px-5 py-2.5 min-h-[44px] rounded-full text-sm font-medium transition-all border"
+              style={
+                active === cat
+                  ? { backgroundColor: "#3D6B35", color: "#fff", borderColor: "#3D6B35" }
+                  : { backgroundColor: "#fff", color: "#7A8899", borderColor: "#D6E4EE" }
+              }
             >
-              <div className="text-5xl mb-3">{item.emoji}</div>
-              <p className="font-heading font-bold text-dark text-base mb-1">{item.label}</p>
-              <p className="text-subtext text-xs text-center">{item.desc}</p>
-            </motion.div>
+              {cat}
+            </button>
           ))}
-        </div>
+        </motion.div>
+
+        {/* 카드 그리드 */}
+        {items.length === 0 ? (
+          <p className="text-center text-subtext py-12">포트폴리오를 준비 중입니다.</p>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+            <AnimatePresence mode="popLayout">
+              {filtered.map((item, i) => (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.35, delay: i * 0.05 }}
+                  className="rounded-2xl overflow-hidden shadow-card bg-white flex flex-col"
+                >
+                  {/* 썸네일 영역 */}
+                  <div
+                    className="w-full aspect-[4/3] flex items-center justify-center relative overflow-hidden"
+                    style={{ background: placeholderBg[item.category] }}
+                  >
+                    {item.imageUrl ? (
+                      <Image src={item.imageUrl} alt={item.title} fill className="object-cover" />
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 opacity-40">
+                        <svg className="w-10 h-10 text-dark" fill="none" stroke="currentColor" strokeWidth={1.2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 캡션 */}
+                  <div className="p-4 flex flex-col gap-1.5 flex-1" style={{ backgroundColor: "#FAF6EF" }}>
+                    <span
+                      className="self-start text-xs font-semibold px-2.5 py-1 rounded-full"
+                      style={categoryStyle[item.category]}
+                    >
+                      {item.category}
+                    </span>
+                    <h3 className="font-heading font-bold text-dark text-sm md:text-base leading-snug">
+                      {item.title}
+                    </h3>
+                    {item.desc && (
+                      <p className="text-subtext text-xs md:text-sm leading-relaxed">
+                        {item.desc}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+
+              {/* 더 보기 CTA 카드 */}
+              <motion.div
+                key="cta"
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.35, delay: filtered.length * 0.05 }}
+                className="rounded-2xl overflow-hidden border-2 border-dashed flex flex-col items-center justify-center p-6 gap-3 min-h-[200px] cursor-pointer group transition-colors hover:bg-white/50"
+                style={{ borderColor: "#B5C9A8" }}
+              >
+                <div className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                  style={{ backgroundColor: "#C9E3B2" }}>
+                  <svg className="w-5 h-5" style={{ color: "#2D3540" }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                </div>
+                <p className="font-heading font-bold text-dark text-sm md:text-base text-center leading-snug">
+                  더 많은 결과물<br />보러가기
+                </p>
+                <p className="text-subtext text-xs text-center">다양한 분야에 활용할 수<br />있는 작품들을 리뷰하기</p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        )}
 
         <motion.p
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="text-center text-subtext text-sm mt-8"
+          className="text-center text-subtext text-xs mt-8"
         >
           * 실제 수강생 결과물 이미지는 순차적으로 업데이트됩니다.
         </motion.p>
+
       </div>
     </section>
   );

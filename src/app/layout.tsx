@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { Noto_Serif_KR, Noto_Sans_KR } from "next/font/google";
+import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
-const notoSerifKR = Noto_Serif_KR({
-  weight: ["400", "600", "700"],
-  subsets: ["latin"],
-  preload: false,
-  variable: "--font-noto-serif-kr",
-});
-
-const notoSansKR = Noto_Sans_KR({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin"],
-  preload: false,
-  variable: "--font-noto-sans-kr",
+const paperlogy = localFont({
+  src: [
+    { path: "../../public/fonts/Paperlogy-3Light.ttf",    weight: "300" },
+    { path: "../../public/fonts/Paperlogy-4Regular.ttf",  weight: "400" },
+    { path: "../../public/fonts/Paperlogy-5Medium.ttf",   weight: "500" },
+    { path: "../../public/fonts/Paperlogy-6SemiBold.ttf", weight: "600" },
+    { path: "../../public/fonts/Paperlogy-7Bold.ttf",     weight: "700" },
+    { path: "../../public/fonts/Paperlogy-8ExtraBold.ttf",weight: "800" },
+    { path: "../../public/fonts/Paperlogy-9Black.ttf",    weight: "900" },
+  ],
+  variable: "--font-paperlogy",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -42,8 +42,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
-      <body className={`${notoSerifKR.variable} ${notoSansKR.variable}`}>
+    <html lang="ko" className={paperlogy.variable}>
+      <body>
         {children}
         <Analytics />
       </body>

@@ -18,11 +18,15 @@ export async function POST(req: NextRequest) {
       createdAt: FieldValue.serverTimestamp(),
     });
 
+    // Read notification email from Firestore settings
+    const settingDoc = await db.collection("settings").doc("site_contact_email").get();
+    const notifyEmail = settingDoc.exists ? (settingDoc.data()?.value as string) : "ourchami@gmail.com";
+
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     const { error } = await resend.emails.send({
       from: "나다운 AI창작 워크룸 <onboarding@resend.dev>",
-      to: ["jpodo1@naver.com"],
+      to: [notifyEmail],
       subject: `[문의] ${type} — ${name}님`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
@@ -61,6 +65,20 @@ export async function POST(req: NextRequest) {
     if (error) {
       return NextResponse.json({ error }, { status: 500 });
     }
+
+    // Add to Stibee address book
+    await fetch("https://api.stibee.com/v1/lists/479296/subscribers", {
+      method: "POST",
+      headers: {
+        AccessToken: process.env.STIBEE_API_KEY as string,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        eventOccuredBy: "SUBSCRIBER",
+        confirmEmailYN: "N",
+        subscribers: [{ email, name }],
+      }),
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {

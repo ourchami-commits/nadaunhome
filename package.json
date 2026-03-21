@@ -10,6 +10,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@vercel/analytics": "^1.6.1",
+    "firebase": "^12.10.0",
     "firebase-admin": "^13.7.0",
     "framer-motion": "^12.35.2",
     "iron-session": "^8.0.4",

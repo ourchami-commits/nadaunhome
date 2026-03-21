@@ -22,11 +22,11 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-white shadow-sm" : "bg-transparent"
+      className={`transition-all duration-300 ${
+        scrolled ? "bg-[#FFFEFB]/95 backdrop-blur-sm shadow-card" : "bg-transparent"
       }`}
     >
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="section-inner">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <a href="#" className="flex items-center">
@@ -50,12 +50,10 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
-            <a
-              href="#classes"
-              className="bg-primary hover:bg-primary-hover text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors"
-            >
-              신청하기
-            </a>
+            <a href="#classes" className="btn-sm" style={{ backgroundColor: "#3D6B35", color: "#fff" }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#2E5229")}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#3D6B35")}
+            >신청하기</a>
           </nav>
 
           {/* Mobile hamburger */}
@@ -78,7 +76,7 @@ export default function Navbar() {
 
         {/* Mobile menu */}
         {menuOpen && (
-          <div className="md:hidden bg-white border-t border-border py-4 px-2">
+          <div className="md:hidden bg-[#FFFEFB] border-t border-border py-4 px-2">
             {navLinks.map((link) => (
               <a
                 key={link.href}
@@ -92,7 +90,8 @@ export default function Navbar() {
             <a
               href="#classes"
               onClick={() => setMenuOpen(false)}
-              className="mt-4 block text-center bg-primary text-white font-semibold py-3 rounded-full"
+              className="mt-4 btn w-full"
+              style={{ backgroundColor: "#3D6B35", color: "#fff" }}
             >
               신청하기
             </a>

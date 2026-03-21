@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 
 export interface SessionData {
   isAdmin?: boolean;
+  email?: string;
 }
 
 const sessionOptions: SessionOptions = {
