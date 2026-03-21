@@ -6,11 +6,9 @@ import Image from "next/image";
 
 import type { CSSProperties } from "react";
 
-type Category = "그림책" | "카드뉴스" | "영상" | "ebook";
-
 interface PortfolioItem {
   id: string;
-  category: Category;
+  category: string;
   title: string;
   desc: string;
   imageUrl?: string;

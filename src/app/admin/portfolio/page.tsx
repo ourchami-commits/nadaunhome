@@ -3,12 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
-const CATEGORIES = ["그림책", "카드뉴스", "영상", "ebook"] as const;
-type Category = typeof CATEGORIES[number];
-
 interface PortfolioItem {
   id: string;
-  category: Category;
+  category: string;
   title: string;
   desc: string;
   imageUrl: string;
@@ -17,7 +14,7 @@ interface PortfolioItem {
   sortOrder: number;
 }
 
-const empty = { category: "그림책" as Category, title: "", desc: "", imageUrl: "", purchaseUrl: "", sortOrder: 0 };
+const empty = { category: "그림책", title: "", desc: "", imageUrl: "", purchaseUrl: "", sortOrder: 0 };
 
 export default function PortfolioAdminPage() {
   const [items, setItems] = useState<PortfolioItem[]>([]);
@@ -136,13 +133,12 @@ export default function PortfolioAdminPage() {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs text-subtext mb-1">카테고리</label>
-            <select
+            <input
               value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              placeholder="예) 그림책, 영상, ebook"
               className="form-input"
-            >
-              {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-            </select>
+            />
           </div>
           <div>
             <label className="block text-xs text-subtext mb-1">순서 (숫자 작을수록 앞)</label>
