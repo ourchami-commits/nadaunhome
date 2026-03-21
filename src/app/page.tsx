@@ -40,6 +40,7 @@ export default async function Home() {
         <Hero
           heroSubtitle={settings["site_hero_subtitle"]}
         />
+        <WaveDivider topColor={BG} bottomColor={CREAM} />
         <Empathy />
         <WaveDivider topColor={CREAM} bottomColor={BG}    flip    />
         <BrandValues />
