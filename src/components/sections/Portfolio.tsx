@@ -28,6 +28,7 @@ const placeholderBg: Record<string, string> = {
 
 export default function Portfolio() {
   const [items, setItems] = useState<PortfolioItem[]>([]);
+  const [moreUrl, setMoreUrl] = useState("https://blog.naver.com/chami_on");
 
   useEffect(() => {
     fetch("/api/admin/portfolio")
@@ -35,6 +36,10 @@ export default function Portfolio() {
       .then((data: PortfolioItem[]) =>
         setItems(data.filter((i) => i.visible !== false))
       )
+      .catch(() => {});
+    fetch("/api/admin/settings")
+      .then((r) => r.json())
+      .then((data) => { if (data.site_portfolio_more_url) setMoreUrl(data.site_portfolio_more_url); })
       .catch(() => {});
   }, []);
 
@@ -137,8 +142,11 @@ export default function Portfolio() {
               ))}
 
               {/* 더 보기 CTA 카드 */}
-              <motion.div
+              <motion.a
                 key="cta"
+                href={moreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 layout
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -156,7 +164,7 @@ export default function Portfolio() {
                   더 많은 결과물<br />보러가기
                 </p>
                 <p className="text-subtext text-xs text-center">다양한 분야에 활용할 수<br />있는 작품들을 리뷰하기</p>
-              </motion.div>
+              </motion.a>
             </AnimatePresence>
           </div>
         )}
