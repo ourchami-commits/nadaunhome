@@ -41,16 +41,24 @@ export default function PortfolioAdminPage() {
     if (!file) return;
     setPreview(URL.createObjectURL(file));
     setUploading(true);
-    const fd = new FormData();
-    fd.append("file", file);
-    const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-    const data = await res.json();
-    setUploading(false);
-    if (data.url) {
-      setForm((p) => ({ ...p, imageUrl: data.url }));
-    } else {
-      alert("이미지 업로드에 실패했습니다.");
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.url) {
+        setForm((p) => ({ ...p, imageUrl: data.url }));
+      } else {
+        alert(`이미지 업로드 실패: ${data.error ?? "알 수 없는 오류"}`);
+        setPreview("");
+        if (fileRef.current) fileRef.current.value = "";
+      }
+    } catch (err) {
+      alert(`이미지 업로드 실패: ${err}`);
       setPreview("");
+      if (fileRef.current) fileRef.current.value = "";
+    } finally {
+      setUploading(false);
     }
   };
 
