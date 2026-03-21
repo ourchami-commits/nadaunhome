@@ -50,13 +50,18 @@ export default function ClassAdminPage() {
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      alert("이미지 파일이 너무 큽니다. 4MB 이하의 파일을 사용해주세요.");
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
     setPreview(URL.createObjectURL(file));
     setUploading(true);
     try {
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-      const data = await res.json();
+      const data = res.ok ? await res.json() : { error: `파일이 너무 크거나 서버 오류 (${res.status})` };
       if (data.url) {
         setForm((p) => ({ ...p, imageUrl: data.url }));
       } else {
