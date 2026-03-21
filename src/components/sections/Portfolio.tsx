@@ -54,7 +54,7 @@ export default function Portfolio() {
             실제로 이런 것들을 만들어요
           </span>
           <h2 className="section-title mb-3">우리 클래스에서는<br className="sm:hidden" /> 이런 결과물을 만들 수 있어요</h2>
-          <p className="text-subtext text-base md:text-lg">AI로 만든 나다운 이야기책, 영상 등</p>
+          <p className="text-subtext text-base md:text-lg">내 이야기와 감성을 담아 완성한 창작 작품들</p>
         </motion.div>
 
         {/* 카드 그리드 */}
