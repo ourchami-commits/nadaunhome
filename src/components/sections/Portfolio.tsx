@@ -14,6 +14,7 @@ interface PortfolioItem {
   title: string;
   desc: string;
   imageUrl?: string;
+  purchaseUrl?: string;
   visible: boolean;
   sortOrder: number;
 }
@@ -108,21 +109,48 @@ export default function Portfolio() {
                   transition={{ duration: 0.35, delay: i * 0.05 }}
                   className="rounded-2xl overflow-hidden shadow-card bg-white flex flex-col"
                 >
-                  {/* 썸네일 영역 */}
-                  <div
-                    className="w-full aspect-[4/3] flex items-center justify-center relative overflow-hidden"
-                    style={{ background: placeholderBg[item.category] }}
-                  >
-                    {item.imageUrl ? (
-                      <Image src={item.imageUrl} alt={item.title} fill className="object-cover" />
-                    ) : (
-                      <div className="flex flex-col items-center gap-2 opacity-40">
-                        <svg className="w-10 h-10 text-dark" fill="none" stroke="currentColor" strokeWidth={1.2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
+                  {/* 썸네일 영역 — 구매링크 있으면 클릭 가능 */}
+                  {item.purchaseUrl ? (
+                    <a
+                      href={item.purchaseUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full aspect-[4/3] flex items-center justify-center relative overflow-hidden group"
+                      style={{ background: placeholderBg[item.category] }}
+                    >
+                      {item.imageUrl ? (
+                        <>
+                          <Image src={item.imageUrl} alt={item.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" unoptimized />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 text-dark text-xs font-semibold px-3 py-1.5 rounded-full">
+                              구매하기 →
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 opacity-40">
+                          <svg className="w-10 h-10 text-dark" fill="none" stroke="currentColor" strokeWidth={1.2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                          </svg>
+                        </div>
+                      )}
+                    </a>
+                  ) : (
+                    <div
+                      className="w-full aspect-[4/3] flex items-center justify-center relative overflow-hidden"
+                      style={{ background: placeholderBg[item.category] }}
+                    >
+                      {item.imageUrl ? (
+                        <Image src={item.imageUrl} alt={item.title} fill className="object-cover" unoptimized />
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 opacity-40">
+                          <svg className="w-10 h-10 text-dark" fill="none" stroke="currentColor" strokeWidth={1.2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* 캡션 */}
                   <div className="p-4 flex flex-col gap-1.5 flex-1" style={{ backgroundColor: "#FAF6EF" }}>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 const CATEGORIES = ["그림책", "카드뉴스", "영상", "ebook"] as const;
 type Category = typeof CATEGORIES[number];
@@ -11,17 +12,21 @@ interface PortfolioItem {
   title: string;
   desc: string;
   imageUrl: string;
+  purchaseUrl: string;
   visible: boolean;
   sortOrder: number;
 }
 
-const empty = { category: "그림책" as Category, title: "", desc: "", imageUrl: "", sortOrder: 0 };
+const empty = { category: "그림책" as Category, title: "", desc: "", imageUrl: "", purchaseUrl: "", sortOrder: 0 };
 
 export default function PortfolioAdminPage() {
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [form, setForm] = useState(empty);
   const [saving, setSaving] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string>("");
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const load = () =>
     fetch("/api/admin/portfolio")
@@ -30,6 +35,24 @@ export default function PortfolioAdminPage() {
       .catch(() => {});
 
   useEffect(() => { load(); }, []);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPreview(URL.createObjectURL(file));
+    setUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+    const data = await res.json();
+    setUploading(false);
+    if (data.url) {
+      setForm((p) => ({ ...p, imageUrl: data.url }));
+    } else {
+      alert("이미지 업로드에 실패했습니다.");
+      setPreview("");
+    }
+  };
 
   const save = async () => {
     if (!form.title.trim()) return;
@@ -49,6 +72,8 @@ export default function PortfolioAdminPage() {
       });
     }
     setForm(empty);
+    setPreview("");
+    if (fileRef.current) fileRef.current.value = "";
     setSaving(false);
     load();
   };
@@ -74,16 +99,23 @@ export default function PortfolioAdminPage() {
 
   const startEdit = (item: PortfolioItem) => {
     setEditId(item.id);
+    setPreview(item.imageUrl || "");
     setForm({
       category: item.category,
       title: item.title,
       desc: item.desc,
       imageUrl: item.imageUrl || "",
+      purchaseUrl: item.purchaseUrl || "",
       sortOrder: item.sortOrder ?? 0,
     });
   };
 
-  const cancelEdit = () => { setEditId(null); setForm(empty); };
+  const cancelEdit = () => {
+    setEditId(null);
+    setForm(empty);
+    setPreview("");
+    if (fileRef.current) fileRef.current.value = "";
+  };
 
   return (
     <div className="p-6 max-w-3xl">
@@ -135,11 +167,30 @@ export default function PortfolioAdminPage() {
           />
         </div>
 
+        {/* 이미지 업로드 */}
         <div>
-          <label className="block text-xs text-subtext mb-1">이미지 URL (선택)</label>
+          <label className="block text-xs text-subtext mb-1">이미지 (선택)</label>
           <input
-            value={form.imageUrl}
-            onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFile}
+            className="block w-full text-sm text-subtext file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover cursor-pointer"
+          />
+          {uploading && <p className="text-xs text-subtext mt-1">업로드 중...</p>}
+          {preview && !uploading && (
+            <div className="mt-2 relative w-32 h-24 rounded-lg overflow-hidden border border-border">
+              <Image src={preview} alt="미리보기" fill className="object-cover" unoptimized />
+            </div>
+          )}
+        </div>
+
+        {/* 구매 링크 */}
+        <div>
+          <label className="block text-xs text-subtext mb-1">구매 링크 (선택 — 이미지 클릭 시 이동)</label>
+          <input
+            value={form.purchaseUrl}
+            onChange={(e) => setForm({ ...form, purchaseUrl: e.target.value })}
             placeholder="https://..."
             className="form-input"
           />
@@ -148,7 +199,7 @@ export default function PortfolioAdminPage() {
         <div className="flex gap-3 pt-1">
           <button
             onClick={save}
-            disabled={saving}
+            disabled={saving || uploading}
             className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-60"
             style={{ backgroundColor: "#3D6B35" }}
           >
@@ -167,6 +218,12 @@ export default function PortfolioAdminPage() {
         {items.length === 0 && <p className="text-subtext text-sm">등록된 포트폴리오가 없습니다.</p>}
         {items.map((item) => (
           <div key={item.id} className="bg-white rounded-xl shadow-card p-4 flex items-start gap-4">
+            {/* 썸네일 */}
+            {item.imageUrl && (
+              <div className="relative w-16 h-12 rounded-lg overflow-hidden shrink-0 border border-border">
+                <Image src={item.imageUrl} alt={item.title} fill className="object-cover" unoptimized />
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#F3F8FC", color: "#5E7A52" }}>
@@ -176,6 +233,9 @@ export default function PortfolioAdminPage() {
               </div>
               <p className="font-semibold text-dark text-sm">{item.title}</p>
               {item.desc && <p className="text-xs text-subtext mt-0.5">{item.desc}</p>}
+              {item.purchaseUrl && (
+                <p className="text-xs text-subtext mt-0.5 truncate">🔗 {item.purchaseUrl}</p>
+              )}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
