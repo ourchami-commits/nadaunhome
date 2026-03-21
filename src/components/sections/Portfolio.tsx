@@ -6,7 +6,7 @@ import Image from "next/image";
 
 import type { CSSProperties } from "react";
 
-type Category = "전체" | "그림책" | "카드뉴스" | "영상" | "ebook";
+type Category = "그림책" | "카드뉴스" | "영상" | "ebook";
 
 interface PortfolioItem {
   id: string;
@@ -33,10 +33,7 @@ const placeholderBg: Record<string, string> = {
   ebook:  "linear-gradient(135deg, #fdf6d8 0%, #f6e59a 100%)",
 };
 
-const categories: Category[] = ["전체", "그림책", "카드뉴스", "영상", "ebook"];
-
 export default function Portfolio() {
-  const [active, setActive] = useState<Category>("전체");
   const [items, setItems] = useState<PortfolioItem[]>([]);
 
   useEffect(() => {
@@ -47,8 +44,6 @@ export default function Portfolio() {
       )
       .catch(() => {});
   }, []);
-
-  const filtered = active === "전체" ? items : items.filter((i) => i.category === active);
 
   return (
     <section className="py-20 md:py-28" style={{ backgroundColor: "#EDE7DC" }} id="portfolio">
@@ -69,37 +64,13 @@ export default function Portfolio() {
           <p className="text-subtext text-base md:text-lg">AI로 만든 나다운 이야기책, 영상 등</p>
         </motion.div>
 
-        {/* 카테고리 필터 */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="flex flex-wrap justify-center gap-2 mb-10"
-        >
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActive(cat)}
-              className="px-5 py-2.5 min-h-[44px] rounded-full text-sm font-medium transition-all border"
-              style={
-                active === cat
-                  ? { backgroundColor: "#3D6B35", color: "#fff", borderColor: "#3D6B35" }
-                  : { backgroundColor: "#fff", color: "#7A8899", borderColor: "#D6E4EE" }
-              }
-            >
-              {cat}
-            </button>
-          ))}
-        </motion.div>
-
         {/* 카드 그리드 */}
         {items.length === 0 ? (
           <p className="text-center text-subtext py-12">포트폴리오를 준비 중입니다.</p>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
             <AnimatePresence mode="popLayout">
-              {filtered.map((item, i) => (
+              {items.map((item, i) => (
                 <motion.div
                   key={item.id}
                   layout
@@ -178,7 +149,7 @@ export default function Portfolio() {
                 layout
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.35, delay: filtered.length * 0.05 }}
+                transition={{ duration: 0.35, delay: items.length * 0.05 }}
                 className="rounded-2xl overflow-hidden border-2 border-dashed flex flex-col items-center justify-center p-6 gap-3 min-h-[200px] cursor-pointer group transition-colors hover:bg-white/50"
                 style={{ borderColor: "#B5C9A8" }}
               >
