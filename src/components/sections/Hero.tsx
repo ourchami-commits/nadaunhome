@@ -106,6 +106,21 @@ export default function Hero({ heroSubtitle }: { heroSubtitle?: string }) {
           />
         </div>
 
+        {/* 하단 웨이브 */}
+        <div className="absolute bottom-0 left-0 right-0 z-10" style={{ lineHeight: 0, marginBottom: "-2px" }}>
+          <svg
+            viewBox="0 0 1440 80"
+            preserveAspectRatio="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ display: "block", width: "100%", height: "60px" }}
+          >
+            <path
+              d="M0,80 L0,28 C280,0 560,60 840,30 C1040,12 1260,48 1440,28 L1440,80 Z"
+              fill="#F3F8FC"
+            />
+          </svg>
+        </div>
+
         {/* 텍스트 */}
         <div className="relative section-inner h-full flex items-center" style={{ paddingTop: "5.5rem" }}>
           <div className="max-w-lg">
