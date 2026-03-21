@@ -17,12 +17,7 @@ interface PortfolioItem {
   sortOrder: number;
 }
 
-const categoryStyle: Record<string, CSSProperties> = {
-  그림책:  { backgroundColor: "#C9E3B2", color: "#2D3540" },
-  카드뉴스: { backgroundColor: "#F4B59F", color: "#2D3540" },
-  영상:   { backgroundColor: "#B9DAF2", color: "#2D3540" },
-  ebook:  { backgroundColor: "#F6E59A", color: "#2D3540" },
-};
+const badgeStyle: CSSProperties = { backgroundColor: "#C9E3B2", color: "#2D3540" };
 
 const placeholderBg: Record<string, string> = {
   그림책:  "linear-gradient(135deg, #e8f5d8 0%, #c9e3b2 100%)",
@@ -92,7 +87,7 @@ export default function Portfolio() {
                           <Image src={item.imageUrl} alt={item.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" unoptimized />
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
                             <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 text-dark text-xs font-semibold px-3 py-1.5 rounded-full">
-                              구매하기 →
+                              자세히 보기 →
                             </span>
                           </div>
                         </>
@@ -125,7 +120,7 @@ export default function Portfolio() {
                   <div className="p-4 flex flex-col gap-1.5 flex-1" style={{ backgroundColor: "#FAF6EF" }}>
                     <span
                       className="self-start text-xs font-semibold px-2.5 py-1 rounded-full"
-                      style={categoryStyle[item.category]}
+                      style={badgeStyle}
                     >
                       {item.category}
                     </span>
