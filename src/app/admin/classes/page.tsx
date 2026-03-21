@@ -1,274 +1,350 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
-// 기존 클래스 URL 관리
-const EXISTING_KEYS = [
-  { id: "basic", label: "AI 기초" },
-  { id: "poem-picturebook", label: "시 그림책" },
-  { id: "picturebook", label: "그림책 출판" },
-  { id: "video", label: "AI 영상제작" },
-];
-const TRACK_KEYS = [
-  { key: "regular", label: "6주 정규" },
-  { key: "challenge", label: "2주 챌린지" },
-];
-
-interface CustomClass {
+interface ClassData {
   id: string;
   tabLabel: string;
   title: string;
   subtitle: string;
+  target: string[];
+  durationLabel: string;
+  outcome: string;
   applyUrl: string;
+  imageUrl: string;
   visible: boolean;
+  sortOrder: number;
 }
 
-const emptyForm = { tabLabel: "", title: "", subtitle: "", applyUrl: "" };
+const emptyForm = {
+  tabLabel: "",
+  title: "",
+  subtitle: "",
+  targetStr: "",
+  durationLabel: "6주 정규 과정",
+  outcome: "",
+  applyUrl: "",
+  imageUrl: "",
+  sortOrder: 0,
+};
 
-export default function ClassesPage() {
-  const [tab, setTab] = useState<"existing" | "custom">("existing");
-
-  // 기존 클래스 URL
-  const [urls, setUrls] = useState<Record<string, string>>({});
-  const [urlSaving, setUrlSaving] = useState(false);
-  const [urlSaved, setUrlSaved] = useState(false);
-
-  // 신규 클래스
-  const [classes, setClasses] = useState<CustomClass[]>([]);
+export default function ClassAdminPage() {
+  const [items, setItems] = useState<ClassData[]>([]);
   const [form, setForm] = useState(emptyForm);
-  const [adding, setAdding] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState("");
+  const [seeding, setSeeding] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    fetch("/api/admin/settings")
-      .then((r) => r.json())
-      .then((data) => {
-        const classUrls: Record<string, string> = {};
-        EXISTING_KEYS.forEach(({ id }) => {
-          TRACK_KEYS.forEach(({ key }) => {
-            const k = `class_${id}_${key}`;
-            classUrls[k] = data[k] || "";
-          });
-        });
-        setUrls(classUrls);
-      });
-
+  const load = () =>
     fetch("/api/admin/classes")
       .then((r) => r.json())
-      .then((data) => {
-        setClasses(data);
-        setLoading(false);
+      .then(setItems)
+      .catch(() => {});
+
+  useEffect(() => { load(); }, []);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPreview(URL.createObjectURL(file));
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.url) {
+        setForm((p) => ({ ...p, imageUrl: data.url }));
+      } else {
+        alert(`이미지 업로드 실패: ${data.error ?? "알 수 없는 오류"}`);
+        setPreview("");
+        if (fileRef.current) fileRef.current.value = "";
+      }
+    } catch (err) {
+      alert(`이미지 업로드 실패: ${err}`);
+      setPreview("");
+      if (fileRef.current) fileRef.current.value = "";
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const save = async () => {
+    if (!form.title.trim() || !form.tabLabel.trim()) return;
+    setSaving(true);
+    const { targetStr, ...rest } = form;
+    const payload = {
+      ...rest,
+      target: targetStr.split(",").map((s) => s.trim()).filter(Boolean),
+    };
+    if (editId) {
+      await fetch("/api/admin/classes", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editId, ...payload }),
       });
-  }, []);
-
-  const saveUrls = async () => {
-    setUrlSaving(true);
-    await fetch("/api/admin/settings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(urls),
-    });
-    setUrlSaving(false);
-    setUrlSaved(true);
-    setTimeout(() => setUrlSaved(false), 2000);
-  };
-
-  const addClass = async () => {
-    if (!form.tabLabel || !form.title) return;
-    setAdding(true);
-    const res = await fetch("/api/admin/classes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    const { id } = await res.json();
-    setClasses((prev) => [...prev, { id, ...form, visible: true }]);
+      setEditId(null);
+    } else {
+      await fetch("/api/admin/classes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    }
     setForm(emptyForm);
-    setAdding(false);
+    setPreview("");
+    if (fileRef.current) fileRef.current.value = "";
+    setSaving(false);
+    load();
   };
 
-  const toggleVisible = async (id: string, visible: boolean) => {
+  const toggleVisible = async (item: ClassData) => {
     await fetch("/api/admin/classes", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, visible: !visible }),
+      body: JSON.stringify({ id: item.id, visible: !item.visible }),
     });
-    setClasses((prev) => prev.map((c) => (c.id === id ? { ...c, visible: !visible } : c)));
+    load();
   };
 
-  const deleteClass = async (id: string) => {
-    if (!confirm("삭제하시겠습니까?")) return;
+  const remove = async (id: string) => {
+    if (!confirm("삭제하시겠어요?")) return;
     await fetch("/api/admin/classes", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
-    setClasses((prev) => prev.filter((c) => c.id !== id));
+    load();
   };
 
-  const updateClassUrl = async (id: string, applyUrl: string) => {
-    await fetch("/api/admin/classes", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, applyUrl }),
+  const startEdit = (item: ClassData) => {
+    setEditId(item.id);
+    setPreview(item.imageUrl || "");
+    setForm({
+      tabLabel: item.tabLabel,
+      title: item.title,
+      subtitle: item.subtitle || "",
+      targetStr: (item.target || []).join(", "),
+      durationLabel: item.durationLabel || "6주 정규 과정",
+      outcome: item.outcome || "",
+      applyUrl: item.applyUrl || "",
+      imageUrl: item.imageUrl || "",
+      sortOrder: item.sortOrder ?? 0,
     });
   };
 
-  return (
-    <div>
-      <h1 className="font-heading text-dark text-2xl font-bold mb-6">클래스 관리</h1>
+  const cancelEdit = () => {
+    setEditId(null);
+    setForm(emptyForm);
+    setPreview("");
+    if (fileRef.current) fileRef.current.value = "";
+  };
 
-      {/* Tab */}
-      <div className="flex gap-2 mb-6">
+  const seed = async () => {
+    setSeeding(true);
+    await fetch("/api/admin/classes/seed", { method: "POST" });
+    setSeeding(false);
+    load();
+  };
+
+  return (
+    <div className="p-6 max-w-3xl">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold text-dark">클래스 관리</h1>
         <button
-          onClick={() => setTab("existing")}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${tab === "existing" ? "bg-primary text-white" : "bg-white text-subtext"}`}
+          onClick={seed}
+          disabled={seeding}
+          className="text-xs px-4 py-2 rounded-lg border border-border text-subtext hover:text-dark disabled:opacity-60"
         >
-          기존 클래스 URL
-        </button>
-        <button
-          onClick={() => setTab("custom")}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${tab === "custom" ? "bg-primary text-white" : "bg-white text-subtext"}`}
-        >
-          신규 클래스 추가
+          {seeding ? "불러오는 중..." : "기본 클래스 불러오기"}
         </button>
       </div>
 
-      {tab === "existing" && (
-        <div>
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={saveUrls}
-              disabled={urlSaving}
-              className="bg-primary hover:bg-primary-hover disabled:opacity-60 text-white font-semibold px-6 py-2.5 rounded-full text-sm transition-colors"
-            >
-              {urlSaving ? "저장 중..." : urlSaved ? "저장됨 ✓" : "저장"}
-            </button>
+      {/* 입력 폼 */}
+      <div className="bg-white rounded-2xl shadow-card p-6 mb-8 space-y-4">
+        <h2 className="font-semibold text-dark">{editId ? "클래스 수정" : "새 클래스 추가"}</h2>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-subtext mb-1">탭 이름 *</label>
+            <input
+              value={form.tabLabel}
+              onChange={(e) => setForm({ ...form, tabLabel: e.target.value })}
+              placeholder="예) 시 그림책"
+              className="form-input"
+            />
           </div>
-          <div className="space-y-4">
-            {EXISTING_KEYS.map(({ id, label }) => (
-              <div key={id} className="bg-white rounded-2xl shadow-sm p-6">
-                <h2 className="font-semibold text-dark mb-3">{label}</h2>
-                <div className="space-y-3">
-                  {TRACK_KEYS.map(({ key, label: trackLabel }) => (
-                    <div key={key}>
-                      <label className="block text-xs text-subtext mb-1">{trackLabel} 신청 URL</label>
-                      <input
-                        type="url"
-                        value={urls[`class_${id}_${key}`] || ""}
-                        onChange={(e) =>
-                          setUrls((prev) => ({ ...prev, [`class_${id}_${key}`]: e.target.value }))
-                        }
-                        placeholder="https://..."
-                        className="w-full border border-border rounded-xl px-4 py-2.5 text-dark text-sm focus:outline-none focus:border-primary bg-bg"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+          <div>
+            <label className="block text-xs text-subtext mb-1">순서 (숫자 작을수록 앞)</label>
+            <input
+              type="number"
+              value={form.sortOrder}
+              onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
+              className="form-input"
+            />
           </div>
         </div>
-      )}
 
-      {tab === "custom" && (
         <div>
-          {/* Add form */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-            <h2 className="font-semibold text-dark mb-4">새 클래스 추가</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-              <div>
-                <label className="block text-xs text-subtext mb-1">탭 이름 (짧게) *</label>
-                <input
-                  value={form.tabLabel}
-                  onChange={(e) => setForm((p) => ({ ...p, tabLabel: e.target.value }))}
-                  placeholder="예: AI 글쓰기"
-                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm text-dark focus:outline-none focus:border-primary bg-bg"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-subtext mb-1">클래스 제목 *</label>
-                <input
-                  value={form.title}
-                  onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                  placeholder="예: AI활용 글쓰기 클래스"
-                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm text-dark focus:outline-none focus:border-primary bg-bg"
-                />
-              </div>
-            </div>
-            <div className="mb-3">
-              <label className="block text-xs text-subtext mb-1">부제목</label>
-              <input
-                value={form.subtitle}
-                onChange={(e) => setForm((p) => ({ ...p, subtitle: e.target.value }))}
-                placeholder="예: AI로 나만의 글 완성하기"
-                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm text-dark focus:outline-none focus:border-primary bg-bg"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-xs text-subtext mb-1">신청 URL</label>
-              <input
-                type="url"
-                value={form.applyUrl}
-                onChange={(e) => setForm((p) => ({ ...p, applyUrl: e.target.value }))}
-                placeholder="https://..."
-                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm text-dark focus:outline-none focus:border-primary bg-bg"
-              />
-            </div>
-            <button
-              onClick={addClass}
-              disabled={adding || !form.tabLabel || !form.title}
-              className="bg-primary hover:bg-primary-hover disabled:opacity-60 text-white font-semibold px-5 py-2.5 rounded-full text-sm transition-colors"
-            >
-              {adding ? "추가 중..." : "클래스 추가"}
-            </button>
-          </div>
+          <label className="block text-xs text-subtext mb-1">클래스 제목 *</label>
+          <input
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            placeholder="예) AI활용 시 그림책 출판 클래스"
+            className="form-input"
+          />
+        </div>
 
-          {/* List */}
-          {loading ? (
-            <p className="text-subtext">불러오는 중...</p>
-          ) : classes.length === 0 ? (
-            <p className="text-subtext text-sm">추가된 클래스가 없습니다.</p>
-          ) : (
-            <div className="space-y-3">
-              {classes.map((cls) => (
-                <div
-                  key={cls.id}
-                  className={`bg-white rounded-2xl shadow-sm p-5 ${!cls.visible ? "opacity-50" : ""}`}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="font-semibold text-dark">{cls.title}</span>
-                        <span className="text-xs bg-bg text-subtext px-2 py-0.5 rounded-full">{cls.tabLabel}</span>
-                      </div>
-                      {cls.subtitle && <p className="text-subtext text-sm">{cls.subtitle}</p>}
-                    </div>
-                    <div className="flex gap-2 shrink-0">
-                      <button onClick={() => toggleVisible(cls.id, cls.visible)} className="text-xs text-primary underline">
-                        {cls.visible ? "숨기기" : "표시"}
-                      </button>
-                      <button onClick={() => deleteClass(cls.id)} className="text-xs text-secondary underline">
-                        삭제
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-subtext mb-1">신청 URL</label>
-                    <input
-                      type="url"
-                      defaultValue={cls.applyUrl}
-                      onBlur={(e) => updateClassUrl(cls.id, e.target.value)}
-                      placeholder="https://..."
-                      className="w-full border border-border rounded-xl px-3 py-2 text-sm text-dark focus:outline-none focus:border-primary bg-bg"
-                    />
-                  </div>
-                </div>
-              ))}
+        <div>
+          <label className="block text-xs text-subtext mb-1">부제목</label>
+          <input
+            value={form.subtitle}
+            onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
+            placeholder="예) 내 시와 AI 그림으로 나만의 그림책 만들기"
+            className="form-input"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs text-subtext mb-1">추천 대상 (쉼표로 구분)</label>
+          <input
+            value={form.targetStr}
+            onChange={(e) => setForm({ ...form, targetStr: e.target.value })}
+            placeholder="예) 글쓰기를 좋아하는 분, 시나 짧은 글을 그림책으로 만들고 싶은 분"
+            className="form-input"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-subtext mb-1">기간 표시</label>
+            <input
+              value={form.durationLabel}
+              onChange={(e) => setForm({ ...form, durationLabel: e.target.value })}
+              placeholder="예) 6주 정규 과정"
+              className="form-input"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-subtext mb-1">완성 결과물</label>
+            <input
+              value={form.outcome}
+              onChange={(e) => setForm({ ...form, outcome: e.target.value })}
+              placeholder="예) 내 시로 완성한 그림책 1권"
+              className="form-input"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs text-subtext mb-1">
+            신청 URL (없으면 &apos;준비 중&apos; 표시, #contact 입력 시 문의 링크)
+          </label>
+          <input
+            value={form.applyUrl}
+            onChange={(e) => setForm({ ...form, applyUrl: e.target.value })}
+            placeholder="https://... 또는 #contact"
+            className="form-input"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs text-subtext mb-1">클래스 이미지 (선택)</label>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFile}
+            className="block w-full text-sm text-subtext file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover cursor-pointer"
+          />
+          {uploading && <p className="text-xs text-subtext mt-1">업로드 중...</p>}
+          {preview && !uploading && (
+            <div className="mt-2 relative w-32 h-24 rounded-lg overflow-hidden border border-border">
+              <Image src={preview} alt="미리보기" fill className="object-cover" unoptimized />
             </div>
           )}
         </div>
-      )}
+
+        <div className="flex gap-3 pt-1">
+          <button
+            onClick={save}
+            disabled={saving || uploading}
+            className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-60"
+            style={{ backgroundColor: "#3D6B35" }}
+          >
+            {saving ? "저장 중..." : editId ? "수정 저장" : "추가"}
+          </button>
+          {editId && (
+            <button onClick={cancelEdit} className="px-5 py-2.5 rounded-xl text-sm font-medium border border-border">
+              취소
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* 목록 */}
+      <div className="space-y-3">
+        {items.length === 0 && (
+          <p className="text-subtext text-sm">
+            등록된 클래스가 없습니다. &apos;기본 클래스 불러오기&apos;를 눌러 시작하세요.
+          </p>
+        )}
+        {items.map((item) => (
+          <div key={item.id} className="bg-white rounded-xl shadow-card p-4 flex items-start gap-4">
+            {item.imageUrl && (
+              <div className="relative w-16 h-12 rounded-lg overflow-hidden shrink-0 border border-border">
+                <Image src={item.imageUrl} alt={item.title} fill className="object-cover" unoptimized />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span
+                  className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: "#F3F8FC", color: "#5E7A52" }}
+                >
+                  {item.tabLabel}
+                </span>
+                <span className="text-xs text-subtext">순서 {item.sortOrder}</span>
+              </div>
+              <p className="font-semibold text-dark text-sm">{item.title}</p>
+              {item.subtitle && <p className="text-xs text-subtext mt-0.5">{item.subtitle}</p>}
+              {item.outcome && <p className="text-xs text-subtext mt-0.5">결과물: {item.outcome}</p>}
+              {item.applyUrl && (
+                <p className="text-xs text-subtext mt-0.5 truncate">🔗 {item.applyUrl}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => toggleVisible(item)}
+                className="text-xs px-3 py-1.5 rounded-lg border transition-colors"
+                style={{
+                  borderColor: item.visible ? "#C9E3B2" : "#D6E4EE",
+                  backgroundColor: item.visible ? "#F0F9E8" : "#F8FAFC",
+                  color: item.visible ? "#3D6B35" : "#7A8899",
+                }}
+              >
+                {item.visible ? "노출 중" : "숨김"}
+              </button>
+              <button
+                onClick={() => startEdit(item)}
+                className="text-xs px-3 py-1.5 rounded-lg border border-border text-subtext hover:text-dark"
+              >
+                수정
+              </button>
+              <button
+                onClick={() => remove(item.id)}
+                className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-400 hover:text-red-600"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
