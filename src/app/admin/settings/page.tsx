@@ -17,6 +17,7 @@ const SITE_FIELDS: Field[] = [
   { key: "site_instagram_url",    label: "인스타그램 URL",       placeholder: "https://instagram.com/..." },
   { key: "site_youtube_url",      label: "유튜브 URL",           placeholder: "https://youtube.com/..." },
   { key: "site_portfolio_more_url", label: "포트폴리오 '더 보기' 링크", placeholder: "https://blog.naver.com/chami_on" },
+  { key: "site_openchat_url",       label: "오픈채팅 정보 공유방 URL", placeholder: "https://open.kakao.com/..." },
 
   // 히어로 섹션
   { key: "site_hero_title",       label: "히어로 메인 문구",     placeholder: "누구나 자신의 이야기를..." },

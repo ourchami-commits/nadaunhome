@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { db } from "@/lib/firebase";
 import SiteHeader from "@/components/layout/SiteHeader";
 import Footer from "@/components/layout/Footer";
@@ -68,6 +70,7 @@ export default async function Home() {
         <FinalCTA
           heading={settings["site_cta_heading"]}
           subtitle={settings["site_cta_subtitle"]}
+          buttonUrl={settings["site_openchat_url"]}
         />
       </main>
       <Footer />

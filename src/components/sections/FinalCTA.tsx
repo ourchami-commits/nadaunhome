@@ -10,7 +10,7 @@ function Spark({ className, color, size = "w-4 h-4" }: { className: string; colo
   );
 }
 
-export default function FinalCTA({ heading, subtitle }: { heading?: string; subtitle?: string }) {
+export default function FinalCTA({ heading, subtitle, buttonUrl }: { heading?: string; subtitle?: string; buttonUrl?: string }) {
   return (
     <section
       className="relative overflow-hidden py-20 md:py-28"
@@ -44,25 +44,23 @@ export default function FinalCTA({ heading, subtitle }: { heading?: string; subt
           </h2>
 
           <p className="text-base md:text-lg mb-10 max-w-md mx-auto leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>
-            {subtitle || <>누구나 쉽게 창작의 기쁨을 누릴 수 있도록<br className="hidden sm:block" />도와드릴게요&nbsp;:)</>}
+            {subtitle || "클래스 안내와 모집 소식을 가장 먼저 받아볼 수 있는 나다운 AI활용 창작 워크룸 정보 공유방을 운영하고 있어요."}
           </p>
 
           <a
-            href="#classes"
+            href={buttonUrl || "#"}
+            target={buttonUrl ? "_blank" : undefined}
+            rel={buttonUrl ? "noopener noreferrer" : undefined}
             className="inline-flex items-center gap-2 px-8 py-4 rounded-full text-white font-semibold text-base transition-colors"
             style={{ backgroundColor: "#3D6B35" }}
             onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#2E5229")}
             onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#3D6B35")}
           >
-            강의 보러가기
+            정보 공유방 들어가기
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
           </a>
-
-          <p className="mt-6 text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
-            부담 없이 먼저 살펴보세요
-          </p>
         </motion.div>
       </div>
     </section>
