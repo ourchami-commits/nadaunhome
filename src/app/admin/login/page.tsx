@@ -1,15 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase-client";
 
 export default function AdminLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError("");
@@ -25,7 +22,7 @@ export default function AdminLogin() {
       });
 
       if (res.ok) {
-        router.push("/admin/dashboard");
+        window.location.href = "/admin/dashboard";
       } else {
         const data = await res.json();
         setError(data.error || "오류가 발생했습니다.");
