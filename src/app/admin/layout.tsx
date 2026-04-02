@@ -1,6 +1,13 @@
+import { getSession } from "@/lib/session";
 import AdminNav from "@/components/admin/AdminNav";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await getSession();
+
+  if (!session.isAdmin) {
+    return <div className="min-h-screen bg-bg">{children}</div>;
+  }
+
   return (
     <div className="min-h-screen bg-bg flex">
       <AdminNav />
