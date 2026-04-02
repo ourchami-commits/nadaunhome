@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getIronSession } from "iron-session";
-import { SessionData } from "@/lib/session";
+
+interface SessionData {
+  isAdmin?: boolean;
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -11,7 +14,7 @@ export async function middleware(req: NextRequest) {
 
   if (pathname.startsWith("/admin")) {
     const res = NextResponse.next();
-    const session = await getIronSession<SessionData>(req.cookies, res.cookies, {
+    const session = await getIronSession<SessionData>(req, res, {
       password: process.env.SESSION_SECRET as string,
       cookieName: "nadaun-admin-session",
     });
@@ -19,6 +22,8 @@ export async function middleware(req: NextRequest) {
     if (!session.isAdmin) {
       return NextResponse.redirect(new URL("/admin/login", req.url));
     }
+
+    return res;
   }
 
   return NextResponse.next();
