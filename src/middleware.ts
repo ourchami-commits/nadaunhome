@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getIronSession } from "iron-session";
 
-interface SessionData {
-  isAdmin?: boolean;
-}
-
-export async function middleware(req: NextRequest) {
+export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (pathname === "/admin/login" || pathname.startsWith("/api/admin/")) {
@@ -13,17 +8,10 @@ export async function middleware(req: NextRequest) {
   }
 
   if (pathname.startsWith("/admin")) {
-    const res = NextResponse.next();
-    const session = await getIronSession<SessionData>(req, res, {
-      password: process.env.SESSION_SECRET as string,
-      cookieName: "nadaun-admin-session",
-    });
-
-    if (!session.isAdmin) {
+    const sessionCookie = req.cookies.get("nadaun-admin-session");
+    if (!sessionCookie) {
       return NextResponse.redirect(new URL("/admin/login", req.url));
     }
-
-    return res;
   }
 
   return NextResponse.next();
