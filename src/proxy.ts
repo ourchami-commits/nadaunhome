@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // /admin/login is always accessible
-  if (pathname === "/admin/login") return NextResponse.next();
+  if (pathname === "/admin/login" || pathname.startsWith("/api/admin/")) {
+    return NextResponse.next();
+  }
 
-  // Protect all /admin/* routes
   if (pathname.startsWith("/admin")) {
     const session = req.cookies.get("nadaun-admin-session");
     if (!session) {
