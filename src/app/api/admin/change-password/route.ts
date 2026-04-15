@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth) return auth.error;
+
   const { currentPassword, newPassword } = await req.json();
 
-  // Get current password (from env or Firestore override)
   const doc = await db.collection("settings").doc("admin_password").get();
   const storedPassword = doc.exists ? doc.data()?.value : process.env.ADMIN_PASSWORD;
 

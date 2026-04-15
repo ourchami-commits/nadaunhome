@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 export async function GET() {
+  const auth = await requireAdmin();
+  if (auth) return auth.error;
+
   const snapshot = await db.collection("settings").get();
   const settings: Record<string, string> = {};
   snapshot.docs.forEach((doc) => {
@@ -11,6 +15,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth) return auth.error;
+
   const body = await req.json();
   const batch = db.batch();
 
