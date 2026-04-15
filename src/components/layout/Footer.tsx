@@ -102,7 +102,6 @@ export default async function Footer() {
           <div className="flex gap-4 text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
             <a href="#" className="footer-copy-link" style={{ color: "rgba(255,255,255,0.35)" }}>개인정보처리방침</a>
             <a href="#" className="footer-copy-link" style={{ color: "rgba(255,255,255,0.35)" }}>이용약관</a>
-            <a href="/admin/login" className="footer-copy-link" style={{ color: "rgba(255,255,255,0.35)" }}>관리자</a>
           </div>
         </div>
       </div>
