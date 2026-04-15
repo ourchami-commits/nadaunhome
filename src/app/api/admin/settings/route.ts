@@ -3,9 +3,6 @@ import { db } from "@/lib/firebase";
 import { requireAdmin } from "@/lib/requireAdmin";
 
 export async function GET() {
-  const auth = await requireAdmin();
-  if (auth) return auth.error;
-
   const snapshot = await db.collection("settings").get();
   const settings: Record<string, string> = {};
   snapshot.docs.forEach((doc) => {

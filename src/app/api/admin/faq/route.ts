@@ -4,9 +4,6 @@ import { FieldValue } from "firebase-admin/firestore";
 import { requireAdmin } from "@/lib/requireAdmin";
 
 export async function GET() {
-  const auth = await requireAdmin();
-  if (auth) return auth.error;
-
   const snapshot = await db
     .collection("faqs")
     .orderBy("sortOrder", "asc")
